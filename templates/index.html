@@ -36,13 +36,20 @@
                 <strong id="total">0</strong>
                 <span>Total tasks</span>
             </article>
+
             <article class="stat-card">
                 <strong id="completed">0</strong>
                 <span>Completed</span>
             </article>
+
             <article class="stat-card stat-accent">
                 <strong id="progress-text">0%</strong>
                 <span>Progress</span>
+            </article>
+
+            <article class="stat-card stat-overdue">
+                <strong id="overdue-count">0</strong>
+                <span>Overdue</span>
             </article>
         </section>
 
@@ -70,7 +77,24 @@
                 <div class="progress-fill" id="progress-fill"></div>
             </div>
 
+
+            <div class="task-filters" role="group" aria-label="Filter tasks">
+                <button type="button" class="filter-button active" data-filter="all">
+                    All
+                </button>
+                <button type="button" class="filter-button" data-filter="pending">
+                    Pending
+                </button>
+                <button type="button" class="filter-button" data-filter="completed">
+                    Completed
+                </button>
+                <button type="button" class="filter-button" data-filter="overdue">
+                    Overdue
+                </button>
+            </div>
+
             <div id="task-list" class="task-list"></div>
+
 
             <div id="empty-state" class="empty-state">
                 <div class="empty-icon" aria-hidden="true">✓</div>
