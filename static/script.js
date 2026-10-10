@@ -120,7 +120,58 @@ function renderTasks() {
             }
         });
 
-        item.append(checkbox, details, deleteButton);
+        const editButton = document.createElement("button");
+editButton.className = "edit-button";
+editButton.type = "button";
+editButton.textContent = "Edit";
+
+editButton.addEventListener("click", async () => {
+    const newTitle = prompt("Edit task title:", task.title);
+
+    if (newTitle === null) return;
+
+    const title = newTitle.trim();
+
+    if (!title) {
+        alert("Task title cannot be empty.");
+        return;
+    }
+
+    if (title.length > 200) {
+        alert("Task title cannot exceed 200 characters.");
+        return;
+    }
+
+    const newDueDate = prompt(
+        "Edit due date (YYYY-MM-DD), or leave blank to remove it:",
+        task.due_date || ""
+    );
+
+    if (newDueDate === null) return;
+
+    const dueDate = newDueDate.trim();
+
+    if (dueDate && !/^\d{4}-\d{2}-\d{2}$/.test(dueDate)) {
+        alert("Please enter the date in YYYY-MM-DD format.");
+        return;
+    }
+
+    try {
+        await apiRequest(`/api/tasks/${task.id}`, {
+            method: "PATCH",
+            body: JSON.stringify({
+                title,
+                due_date: dueDate || null
+            })
+        });
+
+        await loadTasks();
+    } catch (error) {
+        alert(error.message);
+    }
+});
+
+item.append(checkbox, details, editButton, deleteButton);
         taskList.appendChild(item);
     });
 
