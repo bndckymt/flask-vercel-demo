@@ -396,3 +396,33 @@ button { cursor: pointer; }
 .hint { color: var(--faint); font-size: 12px; }
 .field input:user-invalid { border-color: var(--danger); }
 .field input:user-invalid:focus { box-shadow: 0 0 0 4px #ff929f1f; }
+
+
+/* Task title and deadline layout */
+.task-details {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    min-width: 0;
+}
+
+.task-due-date {
+    font-size: 0.8rem;
+    color: #64748b;
+    line-height: 1.4;
+}
+
+.task-due-date.is-overdue {
+    color: #dc2626;
+    font-weight: 600;
+}
+
+/* Optional deadline input */
+#task-due-date {
+    font: inherit;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    max-width: 100%;
+}

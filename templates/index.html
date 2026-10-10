@@ -52,11 +52,17 @@
                 <span class="task-count" id="task-count">0 tasks</span>
             </div>
 
+
             <form id="task-form">
                 <input id="task-input" type="text"
-                       placeholder="What needs to get done?"
-                       aria-label="New task"
-                       maxlength="200" required>
+                    placeholder="What needs to get done?"
+                    aria-label="New task"
+                    maxlength="200" required>
+
+                <input id="task-due-date" type="date"
+                    aria-label="Task due date"
+                    title="Optional due date">
+
                 <button type="submit" class="add-button">Add task</button>
             </form>
 

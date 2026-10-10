@@ -45,6 +45,7 @@ async function loadTasks() {
     }
 }
 
+
 function renderTasks() {
     taskList.replaceChildren();
 
@@ -73,9 +74,35 @@ function renderTasks() {
             }
         });
 
+        const details = document.createElement("div");
+        details.className = "task-details";
+
         const title = document.createElement("span");
         title.className = "task-title";
         title.textContent = task.title;
+
+        details.appendChild(title);
+
+        if (task.due_date) {
+            const dueDate = document.createElement("span");
+            dueDate.className = "task-due-date";
+
+            const date = new Date(task.due_date + "T00:00:00");
+            dueDate.textContent = `Due ${date.toLocaleDateString(
+                undefined,
+                { year: "numeric", month: "short", day: "numeric" }
+            )}`;
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            if (!task.completed && date < today) {
+                dueDate.classList.add("is-overdue");
+                dueDate.textContent += " · Overdue";
+            }
+
+            details.appendChild(dueDate);
+        }
 
         const deleteButton = document.createElement("button");
         deleteButton.className = "delete-button";
@@ -93,7 +120,7 @@ function renderTasks() {
             }
         });
 
-        item.append(checkbox, title, deleteButton);
+        item.append(checkbox, details, deleteButton);
         taskList.appendChild(item);
     });
 
@@ -114,26 +141,6 @@ function renderTasks() {
     emptyState.hidden = tasks.length > 0;
 }
 
-form.addEventListener("submit", async event => {
-    event.preventDefault();
-
-    const title = input.value.trim();
-    if (!title) return;
-
-    try {
-        await apiRequest("/api/tasks", {
-            method: "POST",
-            body: JSON.stringify({ title })
-        });
-
-        input.value = "";
-        await loadTasks();
-        input.focus();
-    } catch (error) {
-        alert(error.message);
-    }
-});
-
 clearCompletedButton.addEventListener("click", async () => {
     try {
         await apiRequest("/api/tasks/completed", {
@@ -144,5 +151,33 @@ clearCompletedButton.addEventListener("click", async () => {
         alert(error.message);
     }
 });
+
+form.addEventListener("submit", async event => {
+    event.preventDefault();
+
+    const title = input.value.trim();
+    const dueDate = document.getElementById("task-due-date").value;
+
+    if (!title) return;
+
+    try {
+        await apiRequest("/api/tasks", {
+            method: "POST",
+            body: JSON.stringify({
+                title,
+                due_date: dueDate || null
+            })
+        });
+
+        input.value = "";
+        document.getElementById("task-due-date").value = "";
+
+        await loadTasks();
+        input.focus();
+    } catch (error) {
+        alert(error.message);
+    }
+});
+
 
 loadTasks();

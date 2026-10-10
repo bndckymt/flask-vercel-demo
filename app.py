@@ -168,6 +168,7 @@ def logout():
 
 
 
+
 @app.route("/api/tasks", methods=["GET"])
 @login_required
 def get_tasks():
@@ -175,7 +176,7 @@ def get_tasks():
         with conn.cursor() as cur:
             cur.execute(
                 """
-                SELECT id, title, completed
+                SELECT id, title, completed, due_date
                 FROM tasks
                 WHERE user_id = %s
                 ORDER BY id DESC
@@ -185,7 +186,12 @@ def get_tasks():
             rows = cur.fetchall()
 
     return jsonify([
-        {"id": row[0], "title": row[1], "completed": row[2]}
+        {
+            "id": row[0],
+            "title": row[1],
+            "completed": row[2],
+            "due_date": row[3].isoformat() if row[3] else None
+        }
         for row in rows
     ])
 
@@ -195,6 +201,7 @@ def get_tasks():
 def add_task():
     data = request.get_json(silent=True) or {}
     title = data.get("title", "")
+    due_date = data.get("due_date")
 
     if not isinstance(title, str) or not title.strip():
         return jsonify({"error": "Task title is required"}), 400
@@ -202,46 +209,115 @@ def add_task():
     title = title.strip()
 
     if len(title) > 200:
-        return jsonify({"error": "Task title must be 200 characters or fewer"}), 400
+        return jsonify({
+            "error": "Task title must be 200 characters or fewer"
+        }), 400
+
+    if due_date is not None:
+        if not isinstance(due_date, str):
+            return jsonify({"error": "Invalid due date"}), 400
+
+        try:
+            from datetime import date
+            date.fromisoformat(due_date)
+        except ValueError:
+            return jsonify({"error": "Invalid due date"}), 400
 
     with get_db() as conn:
         with conn.cursor() as cur:
             cur.execute(
                 """
-                INSERT INTO tasks (title, user_id)
-                VALUES (%s, %s)
-                RETURNING id, title, completed
+                INSERT INTO tasks (title, user_id, due_date)
+                VALUES (%s, %s, %s)
+                RETURNING id, title, completed, due_date
                 """,
-                (title, int(current_user.id))
+                (title, int(current_user.id), due_date)
             )
             row = cur.fetchone()
 
     return jsonify({
         "id": row[0],
         "title": row[1],
-        "completed": row[2]
+        "completed": row[2],
+        "due_date": row[3].isoformat() if row[3] else None
     }), 201
+
 
 
 @app.route("/api/tasks/<int:task_id>", methods=["PATCH"])
 @login_required
 def update_task(task_id):
-    data = request.get_json(silent=True) or {}
-    completed = data.get("completed")
+    from datetime import date
 
-    if not isinstance(completed, bool):
-        return jsonify({"error": "A boolean completed value is required"}), 400
+    data = request.get_json(silent=True) or {}
+
+    if not data:
+        return jsonify({"error": "No changes provided"}), 400
+
+    allowed_fields = {"title", "due_date", "completed"}
+
+    if not set(data.keys()).issubset(allowed_fields):
+        return jsonify({"error": "Unsupported field"}), 400
+
+    updates = {}
+
+    if "title" in data:
+        title = data["title"]
+
+        if not isinstance(title, str) or not title.strip():
+            return jsonify({"error": "Task title is required"}), 400
+
+        title = title.strip()
+
+        if len(title) > 200:
+            return jsonify({
+                "error": "Task title must be 200 characters or fewer"
+            }), 400
+
+        updates["title"] = title
+
+    if "due_date" in data:
+        due_date = data["due_date"]
+
+        if due_date is not None:
+            if not isinstance(due_date, str):
+                return jsonify({"error": "Invalid due date"}), 400
+
+            try:
+                date.fromisoformat(due_date)
+            except ValueError:
+                return jsonify({"error": "Invalid due date"}), 400
+
+        updates["due_date"] = due_date
+
+    if "completed" in data:
+        if not isinstance(data["completed"], bool):
+            return jsonify({
+                "error": "A boolean completed value is required"
+            }), 400
+
+        updates["completed"] = data["completed"]
+
+    if not updates:
+        return jsonify({"error": "No valid changes provided"}), 400
+
+    set_clause = ", ".join(
+        f"{field} = %s" for field in updates
+    )
+    values = list(updates.values())
+
+    values.extend([task_id, int(current_user.id)])
 
     with get_db() as conn:
         with conn.cursor() as cur:
             cur.execute(
-                """
+                f"""
                 UPDATE tasks
-                SET completed = %s
+                SET {set_clause}
                 WHERE id = %s AND user_id = %s
-                RETURNING id, title, completed
+                RETURNING id, title, completed, due_date
                 """,
-                (completed, task_id, int(current_user.id))
+                values
             )
             row = cur.fetchone()
 
@@ -251,7 +327,8 @@ def update_task(task_id):
     return jsonify({
         "id": row[0],
         "title": row[1],
-        "completed": row[2]
+        "completed": row[2],
+        "due_date": row[3].isoformat() if row[3] else None
     })
 
 
