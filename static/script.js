@@ -13,18 +13,27 @@ const clearCompletedButton = document.getElementById("clear-completed");
 let tasks = [];
 
 async function apiRequest(url, options = {}) {
+    const csrfToken = document.querySelector(
+        'meta[name="csrf-token"]'
+    ).content;
+
     const response = await fetch(url, {
-        headers: { "Content-Type": "application/json" },
-        ...options
+        ...options,
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrfToken,
+            ...(options.headers || {})
+        }
     });
 
-    const data = await response.json();
-
     if (!response.ok) {
-        throw new Error(data.error || "Something went wrong.");
+        const errorText = await response.text();
+        throw new Error(
+            `Request failed (${response.status}): ${errorText}`
+        );
     }
 
-    return data;
+    return response.json();
 }
 
 async function loadTasks() {

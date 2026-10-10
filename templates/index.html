@@ -1,66 +1,75 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FlowTask | Task Manager</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <main class="app">
         <header class="topbar">
-            <a class="brand" href="/">✦ FlowTask</a>
-            <span class="status"><span class="status-dot"></span> Workspace active</span>
+            <a class="brand" href="/"><span class="brand-mark" aria-hidden="true">✓</span> FlowTask</a>
+            <div class="user-actions">
+                <span class="user-chip">
+                    <span class="avatar" aria-hidden="true">{{ current_user.username[0]|upper }}</span>
+                    {{ current_user.username }}
+                </span>
+                <form action="{{ url_for('logout') }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="ghost-button">Log out</button>
+                </form>
+            </div>
         </header>
 
         <section class="hero">
-            <p class="eyebrow">YOUR PERSONAL WORKSPACE</p>
-            <h1>Make room for<br><span>great work.</span></h1>
+            <h1>Make room for great work.</h1>
             <p class="subtitle">A little progress every day adds up.</p>
         </section>
 
-        <section class="stats">
+        <section class="stats" aria-label="Task summary">
             <article class="stat-card">
-                <span>Total tasks</span>
                 <strong id="total">0</strong>
+                <span>Total tasks</span>
             </article>
             <article class="stat-card">
-                <span>Completed</span>
                 <strong id="completed">0</strong>
+                <span>Completed</span>
             </article>
-            <article class="stat-card">
-                <span>Progress</span>
+            <article class="stat-card stat-accent">
                 <strong id="progress-text">0%</strong>
+                <span>Progress</span>
             </article>
         </section>
 
         <section class="panel">
             <div class="panel-heading">
-                <div>
-                    <p class="eyebrow">TASK BOARD</p>
-                    <h2>Today's focus</h2>
-                </div>
+                <h2>Today's focus</h2>
                 <span class="task-count" id="task-count">0 tasks</span>
             </div>
 
             <form id="task-form">
                 <input id="task-input" type="text"
                        placeholder="What needs to get done?"
+                       aria-label="New task"
                        maxlength="200" required>
-                <button type="submit" class="add-button">+ Add task</button>
+                <button type="submit" class="add-button">Add task</button>
             </form>
 
-            <div class="progress-track">
+            <div class="progress-track" role="progressbar" aria-label="Completion progress">
                 <div class="progress-fill" id="progress-fill"></div>
             </div>
 
             <div id="task-list" class="task-list"></div>
 
             <div id="empty-state" class="empty-state">
-                <div class="empty-icon">✦</div>
-                <h3>Your canvas is clear</h3>
-                <p>Add a task above and start making progress.</p>
+                <div class="empty-icon" aria-hidden="true">✓</div>
+                <h3>Nothing on your list yet</h3>
+                <p>Type a task above and press Enter to add it.</p>
             </div>
 
             <footer class="panel-footer">
@@ -71,7 +80,7 @@
             </footer>
         </section>
 
-        <p class="bottom-note">FLOWTASK <span>·</span> BUILT WITH FLASK</p>
+        <p class="bottom-note">FlowTask · Built with Flask</p>
     </main>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>

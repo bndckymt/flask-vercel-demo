@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account | FlowTask</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <main class="app">
+        <header class="topbar">
+            <a class="brand" href="/"><span class="brand-mark" aria-hidden="true">✓</span> FlowTask</a>
+        </header>
+
+        <section class="panel auth-panel">
+            <div class="auth-heading">
+                <h1>Create your account</h1>
+                <p>Set up your workspace in under a minute.</p>
+            </div>
+
+            {% with messages = get_flashed_messages() %}
+                {% for message in messages %}
+                    <p class="alert" role="alert">{{ message }}</p>
+                {% endfor %}
+            {% endwith %}
+
+            <form class="auth-form" method="POST" action="{{ url_for('register') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <div class="field">
+                    <label for="username">Username</label>
+                    <input id="username" name="username" type="text"
+                           minlength="3" maxlength="50"
+                           autocomplete="username"
+                           placeholder="Choose a username" required autofocus>
+                    <small class="hint">3 to 50 characters.</small>
+                </div>
+
+                <div class="field">
+                    <label for="password">Password</label>
+                    <input id="password" name="password" type="password"
+                           minlength="12" autocomplete="new-password"
+                           placeholder="At least 12 characters" required>
+                    <small class="hint">Use at least 12 characters.</small>
+                </div>
+
+                <div class="field">
+                    <label for="confirm_password">Confirm password</label>
+                    <input id="confirm_password" name="confirm_password"
+                           type="password" minlength="12"
+                           autocomplete="new-password"
+                           placeholder="Enter your password again" required>
+                </div>
+
+                <button class="add-button" type="submit">Create account</button>
+            </form>
+
+            <p class="auth-switch">
+                Already have an account?
+                <a href="{{ url_for('login') }}">Log in</a>
+            </p>
+        </section>
+    </main>
+</body>
+</html>
